@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+
+  
+  <title>pop/push | 技术博客</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="从12尝试1： ```pushViewController: animated:```和```popViewControllerAnimated:```重写由于不想用继承，所以我选择用扩展分类。首先我们新建一个分类```PopPush```。在里面添加如下的代码：  (void)load {static dispatch_once_t onceToken;dispatch_once(&amp;amp;on">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pop&#x2F;push">
+<meta property="og:url" content="http://yoursite.com/2018/11/24/pop:push/index.html">
+<meta property="og:site_name" content="技术博客">
+<meta property="og:description" content="从12尝试1： ```pushViewController: animated:```和```popViewControllerAnimated:```重写由于不想用继承，所以我选择用扩展分类。首先我们新建一个分类```PopPush```。在里面添加如下的代码：  (void)load {static dispatch_once_t onceToken;dispatch_once(&amp;amp;on">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2018-11-24T06:04:42.947Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="pop&#x2F;push">
+<meta name="twitter:description" content="从12尝试1： ```pushViewController: animated:```和```popViewControllerAnimated:```重写由于不想用继承，所以我选择用扩展分类。首先我们新建一个分类```PopPush```。在里面添加如下的代码：  (void)load {static dispatch_once_t onceToken;dispatch_once(&amp;amp;on">
+  
+    <link rel="alternate" href="/atom.xml" title="技术博客" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">技术博客</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-pop:push" class="article article-type-post" itemscope="" itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/11/24/pop:push/" class="article-date">
+  <time datetime="2018-11-24T02:44:05.000Z" itemprop="datePublished">2018-11-24</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      pop/push
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>从<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">尝试1： ```pushViewController: animated:```和```popViewControllerAnimated:```重写</span><br><span class="line">由于不想用继承，所以我选择用扩展分类。首先我们新建一个分类```PopPush```。在里面添加如下的代码：</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>(void)load {<br>static dispatch_once_t onceToken;<br>dispatch_once(&amp;onceToken, ^{<br>NSString <em>selString = @”pushViewController:animated:”;<br>NSString </em>mySelString = [@”xb_” stringByAppendingString:selString];<br>Method originalMethod = class_getInstanceMethod(self, NSSelectorFromString(selString));<br>Method myMethod = class_getInstanceMethod(self, NSSelectorFromString(mySelString));<br>method_exchangeImplementations(originalMethod, myMethod);<br>});<br>}</li>
+</ul>
+<ul>
+<li>(void)xb_pushViewController:(UIViewController *)viewController animated:(BOOL)animated {<br>[self xb_pushViewController:viewController animated:animated];<br>NSLog(@”push好了”);<br>}<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">上面代码用到了runtime黑魔法——方法替换。不清楚的可以网上查查。</span><br><span class="line">接着我们引入这个分类，使用以下代码进行跳转</span><br><span class="line">```[self.navigationController pushViewController:vc animated:YES];</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>进行测试。<br>测试结果发现：在push的同时控制台打印“push好了”，这是不行的，因为上述push是有动画效果的，那么从开始push到整个页面完全展示是需要时间的；然而在push的时候就已经执行了打印方法。因此说明在<figure class="highlight plain"><figcaption><span>animated:```这个方法里写回调达不到我们的要求。</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">尝试2：```UINavigationControllerDelegate</span><br></pre></td></tr></table></figure></p>
+<p>我们看到，里面有这六个方法。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">@protocol UINavigationControllerDelegate &lt;NSObject&gt;</span><br><span class="line"></span><br><span class="line">@optional</span><br><span class="line"></span><br><span class="line">// Called when the navigation controller shows a new top view controller via a push, pop or setting of the view controller stack.</span><br><span class="line">- (void)navigationController:(UINavigationController *)navigationController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated;</span><br><span class="line">- (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated;</span><br><span class="line"></span><br><span class="line">- (UIInterfaceOrientationMask)navigationControllerSupportedInterfaceOrientations:(UINavigationController *)navigationController NS_AVAILABLE_IOS(7_0) __TVOS_PROHIBITED;</span><br><span class="line">- (UIInterfaceOrientation)navigationControllerPreferredInterfaceOrientationForPresentation:(UINavigationController *)navigationController NS_AVAILABLE_IOS(7_0) __TVOS_PROHIBITED;</span><br><span class="line"></span><br><span class="line">- (nullable id &lt;UIViewControllerInteractiveTransitioning&gt;)navigationController:(UINavigationController *)navigationController</span><br><span class="line">interactionControllerForAnimationController:(id &lt;UIViewControllerAnimatedTransitioning&gt;) animationController NS_AVAILABLE_IOS(7_0);</span><br><span class="line"></span><br><span class="line">- (nullable id &lt;UIViewControllerAnimatedTransitioning&gt;)navigationController:(UINavigationController *)navigationController</span><br><span class="line">animationControllerForOperation:(UINavigationControllerOperation)operation</span><br><span class="line">fromViewController:(UIViewController *)fromVC</span><br><span class="line">toViewController:(UIViewController *)toVC  NS_AVAILABLE_IOS(7_0);</span><br><span class="line"></span><br><span class="line">@end</span><br></pre></td></tr></table></figure></p>
+<p>里面有一对方法willShowViewController和didShowViewController。从语义可以看出，后者比较符合我们的需求。<br>然后我们看下怎么使用<figure class="highlight plain"><figcaption><span>(void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated```这个方法。</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">```UINavigationControllerDelegate```是```UINavigationController```的一个delegate。</span><br></pre></td></tr></table></figure></p>
+<p>//…<br>NS_CLASS_AVAILABLE_IOS(2_0) @interface UINavigationController : UIViewController</p>
+<p>//…</p>
+<p>@property(nullable, nonatomic, weak) id<uinavigationcontrollerdelegate> delegate;<br>//…<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">所以要有一个对象可以来放置```UINavigationController```的delegate。然而我还是希望能最大程度的解耦。基于用分类的写法，那么这个对象我们可以选择分类本身。咋看会有问题，但实际不会，因为我们看```UINavigationController.h```文件中对```delegate```的声明，用的是```weak```。所以这个想法是可以用起来的。</span><br><span class="line">我们首先先让分类遵守```UINavigationControllerDelegate```协议。并实现它的方法：</span><br></pre></td></tr></table></figure></uinavigationcontrollerdelegate></p>
+<ul>
+<li><p>(void)navigationController:(UINavigationController <em>)navigationController didShowViewController:(UIViewController </em>)viewController animated:(BOOL)animated {<br>if(self.block){<br>self.block();<br>}<br>}</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">我们需要在这个方法里面处理回调，所以我们需要在push之前设置好回调方法。因此我们给这个分类加个方法，为了使调用简单，我们可以这么写：</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>(void)pushViewController:(UIViewController *)viewController animated:(BOOL)animated block:(void(^)(void))block {<br>self.delegate = self;<br>self.block = block;<br>[self pushViewController:viewController animated:YES];<br>}</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">这样外面只需要一句代码就可以实现这个功能了。多好~</span><br><span class="line">我们在push的地方替换成</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>[self.navigationController pushViewController:vc animated:YES block:^(void){<br>NSLog(@”完全展示”);<br>}];<br><code>接着进行测试。
+结果：跳转开始时没有任何变化，直到页面完全展示的时候，控制台才打印出“完全展示”。这说明我们确实是拦截到了动画完成的时机。
+但是我们要的是跟</code>dismissViewControllerAnimated: completion:<code>`</code>一样的效果，也就是pop结束时的回调。这时我们返回上一页面，触发pop方法。当页面完全展示时会发现，控制台又打印出“完全展示”。于是我们知道了一个结论：</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/11/24/pop:push/" data-id="cjoxza22w00030s47niu4fvsq" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/11/24/TestTitle/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          TestTitle
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/11/23/hello-world/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Hello World</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/测试/">测试</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2018/11/26/test-1/">test</a>
+          </li>
+        
+          <li>
+            <a href="/2018/11/26/test/">test</a>
+          </li>
+        
+          <li>
+            <a href="/2018/11/24/TestTitle/">TestTitle</a>
+          </li>
+        
+          <li>
+            <a href="/2018/11/24/pop:push/">pop/push</a>
+          </li>
+        
+          <li>
+            <a href="/2018/11/23/hello-world/">Hello World</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 wMellon<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>
