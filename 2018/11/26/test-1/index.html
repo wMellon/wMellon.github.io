@@ -135,10 +135,22 @@
 
 </nav>
 
-	
-
-
-
+	<section id="comments" class="comment">
+  <div id="blog_comment"></div>
+  <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+  <script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
+  <script>
+  var gitment = new Gitment({
+    owner: 'wMellon',
+    repo: 'https://github.com/wMellon/BlogComment',
+    oauth: {
+      client_id: 'fe8d707c2d9a5fb0e508',
+      client_secret: '8feaa96d177f86665acb8a18eed86afb4267f2a5',
+    },
+  })
+  gitment.render('blog_comment')
+  </script>
+</section>
 </div>  
       <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
 
