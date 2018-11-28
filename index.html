@@ -85,7 +85,7 @@
     <div class="article-content">
         
         <ol>
-<li><p>autoresizingMask<br> 当vc有导航栏且这个vc的tableView设置了<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">	</span><br><span class="line">2. deleteRowsAtIndexPaths和deleteSections</span><br><span class="line">	section有大于1条row时，可以使用deleteRowsAtIndexPaths；当section中只有一条row时，要用deleteSections</span><br><span class="line"></span><br><span class="line">3. 分割线的间距</span><br><span class="line">	系统默认的间距就是15，所以你设置15是跟默认的一样。</span><br><span class="line">	1. xib设置</span><br><span class="line">		xib面板上第4个选项separator Inset设置</span><br><span class="line">	2. 代码设置</span><br><span class="line">		```[self.tableView setSeparatorInset:UIEdgeInsetsMake(0, 15, 0, 0)];</span><br></pre></td></tr></table></figure></p>
+<li><p>autoresizingMask<br> 当vc有导航栏且这个vc的tableView设置了<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">2. deleteRowsAtIndexPaths和deleteSections</span><br><span class="line">	section有大于1条row时，可以使用deleteRowsAtIndexPaths；当section中只有一条row时，要用deleteSections</span><br><span class="line">3. 分割线的间距</span><br><span class="line">	系统默认的间距就是15，所以你设置15是跟默认的一样。</span><br><span class="line">	1. xib设置</span><br><span class="line">		xib面板上第4个选项separator Inset设置</span><br><span class="line">	2. 代码设置</span><br><span class="line">		```[self.tableView setSeparatorInset:UIEdgeInsetsMake(0, 15, 0, 0)];</span><br></pre></td></tr></table></figure></p>
 </li>
 <li><p>键盘隐藏方式</p>
 <ol>
@@ -98,8 +98,7 @@
 </li>
 </ol>
 </li>
-<li><p>该使用plain？还是Grouped？</p>
- <img src="/2018/11/28/UITableView知识点汇总/1909966-aa12f35fd4dc49c2.gif"> <img src="/2018/11/28/UITableView知识点汇总/1909966-db77c21aa25f0829.gif"></li>
+<li>该使用plain？还是Grouped？ <img src="/2018/11/28/UITableView知识点汇总/1909966-aa12f35fd4dc49c2.gif"> <img src="/2018/11/28/UITableView知识点汇总/1909966-db77c21aa25f0829.gif"></li>
 </ol>
 
         
