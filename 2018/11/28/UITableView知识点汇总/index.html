@@ -21,7 +21,7 @@
 <meta property="og:locale" content="default">
 <meta property="og:image" content="http://yoursite.com/2018/11/28/UITableView知识点汇总/1909966-aa12f35fd4dc49c2.gif">
 <meta property="og:image" content="http://yoursite.com/2018/11/28/UITableView知识点汇总/1909966-db77c21aa25f0829.gif">
-<meta property="og:updated_time" content="2018-11-28T08:32:19.427Z">
+<meta property="og:updated_time" content="2018-11-28T08:39:15.660Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="UITableView知识点汇总">
 <meta name="twitter:description" content="autoresizingMask 当vc有导航栏且这个vc的tableView设置了123456782. deleteRowsAtIndexPaths和deleteSections	section有大于1条row时，可以使用deleteRowsAtIndexPaths；当section中只有一条row时，要用deleteSections3. 分割线的间距	系统默认的间距就是15，所以你设置15是">
@@ -110,7 +110,8 @@
 </li>
 </ol>
 </li>
-<li>该使用plain？还是grouped？ <img src="/2018/11/28/UITableView知识点汇总/1909966-aa12f35fd4dc49c2.gif" title="plain模式"> <img src="/2018/11/28/UITableView知识点汇总/1909966-db77c21aa25f0829.gif" title="grouped模式"></li>
+<li>该使用plain？还是grouped？ <img src="/2018/11/28/UITableView知识点汇总/1909966-aa12f35fd4dc49c2.gif" title="slug plain模式"> <img src="/2018/11/28/UITableView知识点汇总/1909966-db77c21aa25f0829.gif" title="slug grouped模式">
+ 想要撇开讨厌的空白间隙的问题，就要用plain模式。<br> 实在要用grouped模式，遇到空白间隙时，妥善使用<code>self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);</code>可以帮助你处理好空白问题</li>
 </ol>
   
 	</div>
