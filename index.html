@@ -85,7 +85,7 @@
     <div class="article-content">
         
         <p>首先先抛出问题：能否抓到pop/push完成的回调？就像<figure class="highlight plain"><figcaption><span>completion:```一样？</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">接着我们开始尝试。我们从```UINavigationController.h```源文件着手，找系统留下的API，看是否能进行扩展。</span><br><span class="line"></span><br><span class="line"># 尝试1</span><br><span class="line">我们看到了```pushViewController: animated:```和```popViewControllerAnimated:```方法，于是我们猜测是否可以通过重写这两个方法来实现，那我们实践一下，只要想办法重写这两个方法，并在原有方法的基础上加上调用方需要的回调，看回调是否执行就可以得出结论了。这里我采用扩展类的方式来实现。</span><br><span class="line">首先我们新建一个PopedBlock分类，在里面添加如下代码：</span><br></pre></td></tr></table></figure></p>
-<p>(void)load {<br>    static dispatch_once_t onceToken;<br>    dispatch_once(&amp;onceToken, ^{<br>        NSString <em>selString = @”popViewControllerAnimated:”;<br>        NSString </em>mySelString = [@”xb_” stringByAppendingString:selString];<br>        Method originalMethod = class_getInstanceMethod(self, NSSelectorFromString(selString));<br>        Method myMethod = class_getInstanceMethod(self, NSSelectorFromString(mySelString));<br>        method_exchangeImplementations(originalMethod, myMethod);<br>    });<br>}<br>(void)xb_popViewControllerAnimated:(BOOL)animated {<br>    [self xb_popViewControllerAnimated:animated];<br>    NSLog(@”pop好了”);<br>}<br><code>`</code></p>
+<p>sdfasdf<br><code>`</code></p>
 
         
         
