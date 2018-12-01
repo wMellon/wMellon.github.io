@@ -19,7 +19,7 @@
 <meta property="og:site_name" content="wMellon的技术博客">
 <meta property="og:description" content="首先先抛出问题：能否抓到pop/push完成的回调？就像completion:```一样？12345接着我们开始尝试。我们从```UINavigationController.h```源文件着手，找系统留下的API，看是否能进行扩展。# 尝试1我们看到了```pushViewController: animated:```和```popViewControllerAnimated:```方法，于是">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2018-12-01T07:41:47.732Z">
+<meta property="og:updated_time" content="2018-12-01T07:43:09.411Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="UINavigationController-pop-push回调">
 <meta name="twitter:description" content="首先先抛出问题：能否抓到pop/push完成的回调？就像completion:```一样？12345接着我们开始尝试。我们从```UINavigationController.h```源文件着手，找系统留下的API，看是否能进行扩展。# 尝试1我们看到了```pushViewController: animated:```和```popViewControllerAnimated:```方法，于是">
@@ -103,10 +103,46 @@ method_exchangeImplementations(originalMethod, myMethod);
 </code></pre>  });<br>}</li>
 </ul>
 <ul>
-<li>(void)xb_popViewControllerAnimated:(BOOL)animated {<br>  [self xb_popViewControllerAnimated:animated];<br>  NSLog(@”pop好了”);<br>}<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">上面代码中，用到了runtime的钩子----方法替换。大家可以网上找找，这个东西还是挺好用的。</span><br><span class="line">接着我们引入这个分类，使用以下代码进行跳转。</span><br><span class="line">```[self.navigationController popViewController:YES];</span><br></pre></td></tr></table></figure>
+<li>(void)xb_popViewControllerAnimated:(BOOL)animated {<br>  [self xb_popViewControllerAnimated:animated];<br>  NSLog(@”pop好了”);<br>}<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">上面代码中，用到了runtime的方法替换。大家可以网上找找，这个东西还是挺好用的。</span><br><span class="line">接着我们引入这个分类，使用以下代码进行跳转。</span><br><span class="line">```[self.navigationController popViewController:YES];</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
-<p>进行测试。<br>测试结果发现：在push的同时控制台打印“pop好了”，这是不行的，因为上述pop是有动画效果的，那么从开始pop到整个页面完全展示是需要时间的；然而在pop的时候就已经执行了打印方法。因此说明在<code>popViewController:</code>这个方法里写回调达不到我们的要求。</p>
+<p>进行测试。<br>测试结果发现：在push的同时控制台打印“pop好了”，这是不行的，因为上述pop是有动画效果的，那么从开始pop到整个页面完全展示是需要时间的；然而在pop的时候就已经执行了打印方法。因此说明在<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 尝试2</span><br><span class="line">我们注意到里面有个```UINavigationControllerDelegate```，它声明了几个方法</span><br></pre></td></tr></table></figure></p>
+<p>@protocol UINavigationControllerDelegate <nsobject></nsobject></p>
+<p>@optional</p>
+<p>// Called when the navigation controller shows a new top view controller via a push, pop or setting of the view controller stack.</p>
+<ul>
+<li>(void)navigationController:(UINavigationController <em>)navigationController willShowViewController:(UIViewController </em>)viewController animated:(BOOL)animated;</li>
+<li><p>(void)navigationController:(UINavigationController <em>)navigationController didShowViewController:(UIViewController </em>)viewController animated:(BOOL)animated;</p>
+</li>
+<li><p>(UIInterfaceOrientationMask)navigationControllerSupportedInterfaceOrientations:(UINavigationController *)navigationController NS_AVAILABLE_IOS(7_0) __TVOS_PROHIBITED;</p>
+</li>
+<li><p>(UIInterfaceOrientation)navigationControllerPreferredInterfaceOrientationForPresentation:(UINavigationController *)navigationController NS_AVAILABLE_IOS(7_0) __TVOS_PROHIBITED;</p>
+</li>
+<li><p>(nullable id <uiviewcontrollerinteractivetransitioning>)navigationController:(UINavigationController *)navigationController</uiviewcontrollerinteractivetransitioning></p>
+<pre><code>interactionControllerForAnimationController:(id &lt;UIViewControllerAnimatedTransitioning&gt;) animationController NS_AVAILABLE_IOS(7_0);
+</code></pre></li>
+<li><p>(nullable id <uiviewcontrolleranimatedtransitioning>)navigationController:(UINavigationController *)navigationController</uiviewcontrolleranimatedtransitioning></p>
+<pre><code>animationControllerForOperation:(UINavigationControllerOperation)operation
+             fromViewController:(UIViewController *)fromVC
+               toViewController:(UIViewController *)toVC  NS_AVAILABLE_IOS(7_0);
+</code></pre></li>
+</ul>
+<p>@end<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">里面有一对方法willShowViewController和didShowViewController。从语义可以看出，后者比较符合我们的需求。然后我们看下怎么使用```- (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated```这个方法。</span><br><span class="line">我们注意到```UINavigationControllerDelegate```是```UINavigationController```的一个delegate。</span><br></pre></td></tr></table></figure></p>
+<p>//…<br>NS_CLASS_AVAILABLE_IOS(2_0) @interface UINavigationController : UIViewController</p>
+<p>//…</p>
+<p>@property(nullable, nonatomic, weak) id<uinavigationcontrollerdelegate> delegate;<br>//…<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">所以要有一个对象可以来放置```UINavigationController```的delegate。然而我希望能最大程度的解耦。基于用分类的写法，那么这个对象我们可以选择分类本身。咋看会有问题，但实际不会，因为我们看```UINavigationController.h```文件中对```delegate```的声明，用的是```weak```。所以这个想法是没有问题的。</span><br><span class="line">我们首先先让分类遵守```UINavigationControllerDelegate```。并实现它的方法：</span><br></pre></td></tr></table></figure></uinavigationcontrollerdelegate></p>
+<ul>
+<li><p>(void)navigationController:(UINavigationController <em>)navigationController didShowViewController:(UIViewController </em>)viewController animated:(BOOL)animated {<br>  void(^block)(void) = [self block];<br>  if(block){</p>
+<pre><code>block();
+</code></pre><p>  }<br>}</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">我们需要在这个方法里面处理回调，所以我们需要在push之前设置好回调。因此我们给这个分类加个方法，为了使调用简单，我们可以这么写：</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>(nullable UIViewController *)popViewControllerAnimated:(BOOL)animated block:(void(^)(void))block {<br>  self.delegate = self;<br>  [self setBlock:block];<br>  return [self popViewControllerAnimated:animated];<br>}</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">这样外面只需要一句代码就可以实现这个功能了。多好~</span><br><span class="line">我们在pop的地方替换成</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>[self.navigationController popViewController:YES block:^(void){<br>    NSLog(@”完全展示”);<br>}];<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">接着进行测试。</span><br><span class="line">结果：跳转开始时没有任何变化，直到页面完全展示的时候，控制台才打印出“完全展示”。这说明我们确实是拦截到了动画完成的时机。到这里我们似乎实现了想要的目的，但是这时我们再继续返回上一页面，触发pop方法，当页面完全展示时会发现控制台又打印出“完全展示”。</span><br><span class="line">为什么呢？原因很简单，这个delegate是UINavigationController的，并且我们把分类设置了进去，那么在UINavigationController生命周期以内，delegate都是会触发的，而didShowViewController这个方法指的是完全展示之后被触发（不管是pop，还是push，只要是UINavigationController堆栈里面的页面被展示）。所以为了不牵一发而动全身，我们需要“调后即毁”。</span><br><span class="line">这个简单，我们只要在回调执行后把block设置为nil就可以了。那在调用的地方可以这么写：</span><br></pre></td></tr></table></figure></p>
+<p>[self popViewControllerAnimated:YES block:^{<br>    //回调<br>}];<br> <code>`</code><br> （假设A push to B，返回的时候，B执行了上述方法），那当B pop to A页面，B页面完全消失后，回调执行。而且其他的pop不会执行回调。</p>
   
 	</div>
 		<footer class="article-footer clearfix">
