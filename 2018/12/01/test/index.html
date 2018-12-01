@@ -11,18 +11,18 @@
     
 
     
-    <meta name="description" content="首先先抛出问题：能否抓到pop/push完成的回调？就像dismissViewControllerAnimated: completion:一样？接着我们开始尝试。我们从UINavigationController.h源文件着手，找系统留下的API，看是否能进行扩展。 尝试1我们看到了pushViewController: animated:和popViewControllerAnimated:方">
+    <meta name="description" content="首先先抛出问题：能否抓到pop/push完成的回调？就像completion:```一样？12345接着我们开始尝试。我们从```UINavigationController.h```源文件着手，找系统留下的API，看是否能进行扩展。# 尝试1我们看到了```pushViewController: animated:```和```popViewControllerAnimated:```方法，于是">
 <meta name="keywords" content="iOS">
 <meta property="og:type" content="article">
 <meta property="og:title" content="test">
 <meta property="og:url" content="http://yoursite.com/2018/12/01/test/index.html">
 <meta property="og:site_name" content="wMellon的技术博客">
-<meta property="og:description" content="首先先抛出问题：能否抓到pop/push完成的回调？就像dismissViewControllerAnimated: completion:一样？接着我们开始尝试。我们从UINavigationController.h源文件着手，找系统留下的API，看是否能进行扩展。 尝试1我们看到了pushViewController: animated:和popViewControllerAnimated:方">
+<meta property="og:description" content="首先先抛出问题：能否抓到pop/push完成的回调？就像completion:```一样？12345接着我们开始尝试。我们从```UINavigationController.h```源文件着手，找系统留下的API，看是否能进行扩展。# 尝试1我们看到了```pushViewController: animated:```和```popViewControllerAnimated:```方法，于是">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2018-12-01T07:44:37.992Z">
+<meta property="og:updated_time" content="2018-12-01T07:46:29.886Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="test">
-<meta name="twitter:description" content="首先先抛出问题：能否抓到pop/push完成的回调？就像dismissViewControllerAnimated: completion:一样？接着我们开始尝试。我们从UINavigationController.h源文件着手，找系统留下的API，看是否能进行扩展。 尝试1我们看到了pushViewController: animated:和popViewControllerAnimated:方">
+<meta name="twitter:description" content="首先先抛出问题：能否抓到pop/push完成的回调？就像completion:```一样？12345接着我们开始尝试。我们从```UINavigationController.h```源文件着手，找系统留下的API，看是否能进行扩展。# 尝试1我们看到了```pushViewController: animated:```和```popViewControllerAnimated:```方法，于是">
 
     
     <link rel="alternative" href="/atom.xml" title="wMellon的技术博客" type="application/atom+xml">
@@ -89,12 +89,22 @@
 		<div id="toc" class="toc-article">
 			<strong class="toc-title">Contents</strong>
 		
-			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#尝试1"><span class="toc-number">1.</span> <span class="toc-text">尝试1</span></a></li></ol>
+			
 		
 		</div>
 		
-		<p>首先先抛出问题：能否抓到pop/push完成的回调？就像<code>dismissViewControllerAnimated: completion:</code>一样？<br>接着我们开始尝试。我们从<code>UINavigationController.h</code>源文件着手，找系统留下的API，看是否能进行扩展。</p>
-<h1 id="尝试1"><a href="#尝试1" class="headerlink" title="尝试1"></a>尝试1</h1><p>我们看到了<code>pushViewController: animated:</code>和<code>popViewControllerAnimated:</code>方法，于是我们猜测是否可以通过重写这两个方法来实现，那我们实践一下，只要想办法重写这两个方法，并在原有方法的基础上加上调用方需要的回调，看回调是否执行就可以得出结论了。这里我采用扩展类的方式来实现。<br>首先我们新建一个PopedBlock分类，在里面添加如下代码：</p>
+		<p>首先先抛出问题：能否抓到pop/push完成的回调？就像<figure class="highlight plain"><figcaption><span>completion:```一样？</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">接着我们开始尝试。我们从```UINavigationController.h```源文件着手，找系统留下的API，看是否能进行扩展。</span><br><span class="line"></span><br><span class="line"># 尝试1</span><br><span class="line">我们看到了```pushViewController: animated:```和```popViewControllerAnimated:```方法，于是我们猜测是否可以通过重写这两个方法来实现，那我们实践一下，只要想办法重写这两个方法，并在原有方法的基础上加上调用方需要的回调，看回调是否执行就可以得出结论了。这里我采用扩展类的方式来实现。</span><br><span class="line">首先我们新建一个PopedBlock分类，在里面添加如下代码：</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>(void)load {<br>  static dispatch_once_t onceToken;<br>  dispatch_once(&amp;onceToken, ^{<pre><code>NSString *selString = @&quot;popViewControllerAnimated:&quot;;
+NSString *mySelString = [@&quot;xb_&quot; stringByAppendingString:selString];
+Method originalMethod = class_getInstanceMethod(self, NSSelectorFromString(selString));
+Method myMethod = class_getInstanceMethod(self, NSSelectorFromString(mySelString));
+method_exchangeImplementations(originalMethod, myMethod);
+</code></pre>  });<br>}</li>
+</ul>
+<ul>
+<li>(void)xb_popViewControllerAnimated:(BOOL)animated {<br>  [self xb_popViewControllerAnimated:animated];<br>  NSLog(@”pop好了”);<br>}<br><code>`</code></li>
+</ul>
   
 	</div>
 		<footer class="article-footer clearfix">
@@ -153,7 +163,7 @@
   <div id="toc" class="toc-aside">
   <strong class="toc-title">Contents</strong>
  
- <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#尝试1"><span class="toc-number">1.</span> <span class="toc-text">尝试1</span></a></li></ol>
+ 
  
   </div>
 
