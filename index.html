@@ -71,24 +71,30 @@
         <header class="article-info clearfix">
   <h1 itemprop="name">
     
-      <a href="/2018/12/01/test/" title="test" itemprop="url">test</a>
+      <a href="/2018/12/01/test/" title="UINavigationController-pop-push回调" itemprop="url">UINavigationController-pop-push回调</a>
   </h1>
   <p class="article-author">By
        
 		<a href="/about" title="wMellon" target="_blank" itemprop="author">wMellon</a>
 		
   </p><p class="article-time">
-    <time datetime="2018-12-01T07:34:41.000Z" itemprop="datePublished"> Published 2018-12-01</time>
+    <time datetime="2018-12-01T06:16:21.000Z" itemprop="datePublished"> Published 2018-12-01</time>
     
   </p>
 </header>
     <div class="article-content">
         
-        <p>111444ddd</p>
-<p>jsfhadfka<br>  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">666</span><br></pre></td></tr></table></figure></p>
-<p>code2<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dasdfs</span><br></pre></td></tr></table></figure></p>
-<p>kkkkkzzz<br><code>`</code></p>
-<p>fasfsdfs</p>
+        <p>首先先抛出问题：能否抓到pop/push完成的回调？就像一样？<br>接着我们开始尝试。我们从源文件着手，找系统留下的API，看是否能进行扩展。</p>
+<h1 id="尝试1"><a href="#尝试1" class="headerlink" title="尝试1"></a>尝试1</h1><p>我们看到了和方法，于是我们猜测是否可以通过重写这两个方法来实现，那我们实践一下，只要想办法重写这两个方法，并在原有方法的基础上加上调用方需要的回调，看回调是否执行就可以得出结论了。这里我采用扩展类的方式来实现。<br>首先我们新建一个PopedBlock分类，在里面添加如下代码：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">+ (void)load &#123;</span><br><span class="line">    static dispatch_once_t onceToken;</span><br><span class="line">    dispatch_once(&amp;onceToken, ^&#123;</span><br><span class="line">        NSString *selString = @&quot;popViewControllerAnimated:&quot;;</span><br><span class="line">        NSString *mySelString = [@&quot;xb_&quot; stringByAppendingString:selString];</span><br><span class="line">        Method originalMethod = class_getInstanceMethod(self, NSSelectorFromString(selString));</span><br><span class="line">        Method myMethod = class_getInstanceMethod(self, NSSelectorFromString(mySelString));</span><br><span class="line">        method_exchangeImplementations(originalMethod, myMethod);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)xb_popViewControllerAnimated:(BOOL)animated &#123;</span><br><span class="line">    [self xb_popViewControllerAnimated:animated];</span><br><span class="line">    NSLog(@&quot;pop好了&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>上面代码中，用到了runtime的方法替换。大家可以网上找找，这个东西还是挺好用的。<br>接着我们引入这个分类，使用以下代码进行跳转。</p>
+<p>进行测试。<br>测试结果发现：在push的同时控制台打印“pop好了”，这是不行的，因为上述pop是有动画效果的，那么从开始pop到整个页面完全展示是需要时间的；然而在pop的</p>
+<h1 id="尝试2"><a href="#尝试2" class="headerlink" title="尝试2"></a>尝试2</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">@protocol UINavigationControllerDelegate &lt;NSObject&gt;</span><br><span class="line"></span><br><span class="line">@optional</span><br><span class="line"></span><br><span class="line">// Called when the navigation controller shows a new top view controller via a push, pop or setting of the view controller stack.</span><br><span class="line">- (void)navigationController:(UINavigationController *)navigationController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated;</span><br><span class="line">- (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated;</span><br><span class="line"></span><br><span class="line">- (UIInterfaceOrientationMask)navigationControllerSupportedInterfaceOrientations:(UINavigationController *)navigationController NS_AVAILABLE_IOS(7_0) __TVOS_PROHIBITED;</span><br><span class="line">- (UIInterfaceOrientation)navigationControllerPreferredInterfaceOrientationForPresentation:(UINavigationController *)navigationController NS_AVAILABLE_IOS(7_0) __TVOS_PROHIBITED;</span><br><span class="line"></span><br><span class="line">- (nullable id &lt;UIViewControllerInteractiveTransitioning&gt;)navigationController:(UINavigationController *)navigationController</span><br><span class="line">                          interactionControllerForAnimationController:(id &lt;UIViewControllerAnimatedTransitioning&gt;) animationController NS_AVAILABLE_IOS(7_0);</span><br><span class="line"></span><br><span class="line">- (nullable id &lt;UIViewControllerAnimatedTransitioning&gt;)navigationController:(UINavigationController *)navigationController</span><br><span class="line">                                   animationControllerForOperation:(UINavigationControllerOperation)operation</span><br><span class="line">                                                fromViewController:(UIViewController *)fromVC</span><br><span class="line">                                                  toViewController:(UIViewController *)toVC  NS_AVAILABLE_IOS(7_0);</span><br><span class="line"></span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">//...</span><br><span class="line">NS_CLASS_AVAILABLE_IOS(2_0) @interface UINavigationController : UIViewController</span><br><span class="line"></span><br><span class="line">//...</span><br><span class="line"></span><br><span class="line">@property(nullable, nonatomic, weak) id&lt;UINavigationControllerDelegate&gt; delegate;</span><br><span class="line">//...</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">- (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated &#123;</span><br><span class="line">    void(^block)(void) = [self block];</span><br><span class="line">    if(block)&#123;</span><br><span class="line">        block();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们需要在这个方法里面处理回调，所以我们需要在push之前设置好回调。因此我们给这个分类加个方法，为了使调用简单，我们可以这么写：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">- (nullable UIViewController *)popViewControllerAnimated:(BOOL)animated block:(void(^)(void))block &#123;</span><br><span class="line">    self.delegate = self;</span><br><span class="line">    [self setBlock:block];</span><br><span class="line">    return [self popViewControllerAnimated:animated];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这样外面只需要一句代码就可以实现这个功能了。多好~<br>我们在pop的地方替换成<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[self.navigationController popViewController:YES block:^(void)&#123;</span><br><span class="line">    NSLog(@&quot;完全展示&quot;);</span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure></p>
+<p>接着进行测试。<br>结果：跳转开始时没有任何变化，直到页面完全展示的时候，控制台才打印出“完全展示”。这说明我们确实是拦截到了动画完成的时机。到这里我们似乎实现了想要的目的，但是这时我们再继续返回上一页面，触发pop方法，当页面完全展示时会发现控制台又打印出“完全展示”。<br>为什么呢？原因很简单，这个delegate是UINavigationController的，并且我们把分类设置了进去，那么在UINavigationController生命周期以内，delegate都是会触发的，而didShowViewController这个方法指的是完全展示之后被触发（不管是pop，还是push，只要是UINavigationController堆栈里面的页面被展示）。所以为了不牵一发而动全身，我们需要“调后即毁”。<br>这个简单，我们只要在回调执行后把block设置为nil就可以了。那在调用的地方可以这么写：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[self popViewControllerAnimated:YES block:^&#123;</span><br><span class="line">	//回调</span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure></p>
+<p> （假设A push to B，返回的时候，B执行了上述方法），那当B pop to A页面，B页面完全消失后，回调执行。而且其他的pop不会执行回调。</p>
 
         
         
@@ -99,6 +105,16 @@
     <footer class="article-footer clearfix">
 <div class="article-catetags">
 
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/iOS/">iOS</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/UINavigationController/">UINavigationController</a><a href="/tags/pop/">pop</a><a href="/tags/push/">push</a><a href="/tags/回调/">回调</a>
+  </div>
 
 </div>
 
@@ -318,7 +334,7 @@ method_exchangeImplementations(originalMethod, myMethod);
 		<ul>
 		
 		  
-			<li><a href="/categories/iOS/" title="iOS">iOS<sup>2</sup></a></li>
+			<li><a href="/categories/iOS/" title="iOS">iOS<sup>3</sup></a></li>
 		  
 		
 		</ul>
@@ -331,19 +347,19 @@ method_exchangeImplementations(originalMethod, myMethod);
 		<ul class="clearfix">
 		
 			
-				<li><a href="/tags/UINavigationController/" title="UINavigationController">UINavigationController<sup>1</sup></a></li>
+				<li><a href="/tags/UINavigationController/" title="UINavigationController">UINavigationController<sup>2</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/pop/" title="pop">pop<sup>1</sup></a></li>
+				<li><a href="/tags/pop/" title="pop">pop<sup>2</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/push/" title="push">push<sup>1</sup></a></li>
+				<li><a href="/tags/push/" title="push">push<sup>2</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/回调/" title="回调">回调<sup>1</sup></a></li>
+				<li><a href="/tags/回调/" title="回调">回调<sup>2</sup></a></li>
 			
 		
 		</ul>
