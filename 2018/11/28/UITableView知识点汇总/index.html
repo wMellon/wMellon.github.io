@@ -166,7 +166,10 @@
   <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
   <script src="https://www.wenjunjiang.win/js/gitment.js"></script>
   <script>
+  var addr = location.href
+  var articleId = (addr.split("#"))[0];
   var gitment = new Gitment({
+    id: articleId ,
     owner: 'wMellon',
     repo: 'BlogComment',
     oauth: {
