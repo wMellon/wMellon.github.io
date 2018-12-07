@@ -166,11 +166,12 @@
   var array = addr.split("/");
   var articleId = "";
   for(var i = array.length; i >= 0; i --){
-    if(array[i] == ""){
+    if(array[i] == undefined || 
+       array[i] == ""){
       continue;
     }
     articleId = articleId + array[i];
-    if(articleId.length > 20){
+    if(articleId.length > 25){
       break;
     }
   }
