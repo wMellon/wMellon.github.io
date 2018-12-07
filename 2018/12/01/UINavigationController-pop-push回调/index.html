@@ -162,10 +162,19 @@
   <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
   <script src="https://www.wenjunjiang.win/js/gitment.js"></script>
   <script>
-  var addr = location.href
-  var articleId = (addr.split("#"))[0];
-  if(articleId.length > 8){
-    articleId = articleId.substring(0,8);
+  var addr = location.href;
+  var array = addr.split("/");
+  var j = 0;
+  var articleId;
+  for(var i = array.length; i <= 0; i --){
+    if(array[i] == ""){
+      continue;
+    }
+    articleId = articleId + array[i];
+    j ++;
+    if(j == 3){
+      break;
+    }
   }
   var gitment = new Gitment({
     id: articleId ,
