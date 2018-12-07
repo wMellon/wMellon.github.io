@@ -113,7 +113,10 @@
   <script src="https://www.wenjunjiang.win/js/gitment.js"></script>
   <script>
   var addr = location.href
-  var articleId = 'tableView';
+  var articleId = (addr.split("#"))[0];
+  if(articleId.length > 8){
+    articleId = articleId.substring(0,8);
+  }
   var gitment = new Gitment({
     id: articleId ,
     owner: 'wMellon',
